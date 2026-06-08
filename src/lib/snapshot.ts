@@ -1,34 +1,38 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { resolve } from "path";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { UserSnapshot } from "@/types";
 
-const SNAPSHOT_DIR = resolve(process.cwd(), "data/snapshots");
-
-function ensureDir() {
-  if (!existsSync(SNAPSHOT_DIR)) {
-    mkdirSync(SNAPSHOT_DIR, { recursive: true });
-  }
+// Snapshots are stored in Workers KV (key: `snapshot:<userKey>`) instead of the
+// filesystem, since the Workers runtime has no `fs`. All functions are async.
+function kv() {
+  return getCloudflareContext().env.KV;
 }
 
-export function saveSnapshot(userKey: string, snapshot: UserSnapshot): void {
-  ensureDir();
-  const path = resolve(SNAPSHOT_DIR, `${userKey}_latest.json`);
-  writeFileSync(path, JSON.stringify(snapshot, null, 2), "utf-8");
+function snapshotKey(userKey: string): string {
+  return `snapshot:${userKey}`;
 }
 
-export function loadSnapshot(userKey: string): UserSnapshot | null {
-  const path = resolve(SNAPSHOT_DIR, `${userKey}_latest.json`);
-  if (!existsSync(path)) return null;
+export async function saveSnapshot(
+  userKey: string,
+  snapshot: UserSnapshot
+): Promise<void> {
+  await kv().put(snapshotKey(userKey), JSON.stringify(snapshot));
+}
+
+export async function loadSnapshot(
+  userKey: string
+): Promise<UserSnapshot | null> {
+  const raw = await kv().get(snapshotKey(userKey));
+  if (!raw) return null;
   try {
-    const raw = readFileSync(path, "utf-8");
     return JSON.parse(raw) as UserSnapshot;
   } catch {
     return null;
   }
 }
 
-export function loadAllSnapshots(userKeys: string[]): UserSnapshot[] {
-  return userKeys
-    .map((key) => loadSnapshot(key))
-    .filter((s): s is UserSnapshot => s !== null);
+export async function loadAllSnapshots(
+  userKeys: string[]
+): Promise<UserSnapshot[]> {
+  const snapshots = await Promise.all(userKeys.map((key) => loadSnapshot(key)));
+  return snapshots.filter((s): s is UserSnapshot => s !== null);
 }

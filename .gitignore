@@ -44,7 +44,15 @@ next-env.d.ts
 # Anki Battle
 data/snapshots/
 credentials.toml
+src/lib/credentials.ts
 memo.txt
+
+# Cloudflare / OpenNext
+.open-next/
+.dev.vars
+.wrangler/
+cloudflare-env.d.ts
+worker-configuration.d.ts
 
 # Playwright
 .playwright-mcp/

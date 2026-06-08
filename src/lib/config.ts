@@ -1,25 +1,16 @@
-import { readFileSync, existsSync } from "fs";
-import { resolve } from "path";
-import toml from "toml";
 import type { AppConfig } from "@/types";
+import { credentials } from "./credentials";
 
-let cachedConfig: AppConfig | null = null;
-
-export function loadConfig(): AppConfig | null {
-  if (cachedConfig) return cachedConfig;
-
-  const configPath = resolve(process.cwd(), "credentials.toml");
-  if (!existsSync(configPath)) return null;
-
-  const raw = readFileSync(configPath, "utf-8");
-  cachedConfig = toml.parse(raw) as AppConfig;
-  return cachedConfig;
+// Configuration is hardcoded in `credentials.ts` (gitignored). On the Workers
+// runtime there is no filesystem, so the previous toml-on-disk approach is
+// replaced by a plain imported module. The function signatures are kept stable
+// so callers don't need to change.
+export function loadConfig(): AppConfig {
+  return credentials;
 }
 
 export function getUserKeys(): string[] {
-  const config = loadConfig();
-  if (!config) return [];
-  return Object.keys(config.users);
+  return Object.keys(credentials.users);
 }
 
 export function getUserCount(): number {

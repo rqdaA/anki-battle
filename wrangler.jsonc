@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "anki-battle",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "anki-battle"
+    }
+  ],
+  // Run `npx wrangler kv namespace create KV` and paste the returned id below.
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "6a5d3fc76fb146c3bf2d254d3302404e"
+    }
+  ]
+}

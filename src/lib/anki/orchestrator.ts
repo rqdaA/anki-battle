@@ -14,13 +14,12 @@ async function fetchForUser(
 ): Promise<UserSnapshot> {
   const snapshot: UserSnapshot = {
     user: key,
-    email,
     timestamp: new Date().toISOString(),
     deck: null,
   };
 
   // Try with cached session
-  let session = getCachedSession(key);
+  let session = await getCachedSession(key);
   if (session) {
     try {
       const { topNode } = await fetchDeckList(session);
@@ -43,7 +42,7 @@ async function fetchForUser(
   // Fresh login
   try {
     session = await loginAnkiWeb(email, password);
-    setCachedSession(key, session);
+    await setCachedSession(key, session);
 
     const { topNode } = await fetchDeckList(session);
     const deck = findDeckByName(topNode, deckName);
@@ -62,11 +61,10 @@ async function fetchForUser(
 
 export async function fetchAllUsers(): Promise<UserSnapshot[]> {
   const config = loadConfig();
-  if (!config) return [];
-
   const keys = getUserKeys();
   const results: UserSnapshot[] = [];
 
+  // Sequential by design: avoids hitting AnkiWeb with concurrent logins.
   for (const key of keys) {
     const user = config.users[key];
     const snapshot = await fetchForUser(
@@ -75,7 +73,7 @@ export async function fetchAllUsers(): Promise<UserSnapshot[]> {
       user.password,
       config.anki.deck_name
     );
-    saveSnapshot(key, snapshot);
+    await saveSnapshot(key, snapshot);
     results.push(snapshot);
   }
 
