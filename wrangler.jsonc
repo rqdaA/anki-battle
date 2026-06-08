@@ -20,5 +20,13 @@
       "binding": "KV",
       "id": "6a5d3fc76fb146c3bf2d254d3302404e"
     }
+  ],
+  // Custom domain. The rqda.wtf zone must be on this Cloudflare account;
+  // `wrangler deploy` creates the DNS record + TLS cert automatically.
+  "routes": [
+    {
+      "pattern": "anki-battle.rqda.wtf",
+      "custom_domain": true
+    }
   ]
 }
