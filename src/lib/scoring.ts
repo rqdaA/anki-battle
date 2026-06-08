@@ -19,8 +19,15 @@ export function buildChunks(children: RawDeckNode[]): ChunkProgress[] {
   return sorted.map((child, i) => {
     const { total, newCount, studied } = calcNodeStats(child);
 
-    const rangeMatch = (child.name ?? "").match(/\((\d+)-(\d+)\)/);
-    const label = rangeMatch ? `${rangeMatch[1]}-${rangeMatch[2]}` : `chunk${i + 1}`;
+    // Label each section by its child-deck name. Prefer a "N-M" word range if
+    // the name encodes one (e.g. "(1-100)"), else the text before the first
+    // parenthesis (e.g. "RANK1（…）" -> "RANK1"), else the whole name.
+    const name = (child.name ?? "").trim();
+    const rangeMatch = name.match(/[（(]\s*(\d+)\s*[-〜~～]\s*(\d+)\s*[）)]/);
+    const beforeParen = name.split(/[（(]/)[0].trim();
+    const label = rangeMatch
+      ? `${rangeMatch[1]}-${rangeMatch[2]}`
+      : beforeParen || name || `section${i + 1}`;
 
     let level = "unknown";
     if (child.name?.includes("600")) level = "600";

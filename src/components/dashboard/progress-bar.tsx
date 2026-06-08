@@ -9,7 +9,7 @@ export function ProgressBar({ studiedPct, newPct }: ProgressBarProps) {
       <div className="flex justify-between text-xs md:text-sm mb-1 md:mb-1.5">
         <span className="text-gray-600 font-medium">全体</span>
         <span className="text-gray-900 font-semibold tabular-nums">
-          {Math.round(studiedPct)}%
+          {studiedPct.toFixed(1)}%
         </span>
       </div>
       <div className="h-2.5 md:h-3 bg-gray-100 rounded-full overflow-hidden flex">
